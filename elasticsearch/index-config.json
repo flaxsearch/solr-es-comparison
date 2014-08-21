@@ -1,0 +1,25 @@
+{
+    "settings": {
+    },
+    "mappings": {
+        "document": {
+            "_source": { "enabled": true  },
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "index": "not_analyzed"
+                },
+                "text": {
+                    "type": "string",
+                    "analyzer": "standard"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "source": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}
