@@ -16,6 +16,7 @@ qtimes.sort()
 
 print '%d results in %d searches (mean %d)' % (rcount, scount, (rcount / scount))
 print '%0.2fs mean query time, %0.2fs max, %0.2fs min' % (sum(qtimes) / scount, qtimes[-1], qtimes[0])
+print '50%%   of qtimes <= %0.2fs' % qtimes[int(ceil(scount * 0.50))]
 print '90%%   of qtimes <= %0.2fs' % qtimes[int(ceil(scount * 0.90))]
 print '99%%   of qtimes <= %0.2fs' % qtimes[int(ceil(scount * 0.99))]
 print '99.9%% of qtimes <= %0.2fs' % qtimes[int(ceil(scount * 0.999))]
