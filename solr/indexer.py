@@ -21,6 +21,10 @@ def main():
                 print count
                 body = []
 
+            if count % 10000 == 0:
+                resp = requests.get(SOLR_URL + '?commit=true')
+                assert resp.status_code == 200, resp.text
+
     if body:
         resp = requests.post(SOLR_URL,
             headers={'Content-Type': 'application/json'},
