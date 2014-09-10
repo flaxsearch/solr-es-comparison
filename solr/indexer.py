@@ -11,7 +11,7 @@ def main():
         body = []
         for count, line in enumerate(f):
             doc = json.loads(line)
-            doc['id'] = sys.argv[2] + doc['id']
+            doc['id'] = '{0}{1}'.format(sys.argv[2], doc['id'])
             body.append(json.dumps(doc))
             if count % 100 == 0:
                 resp = requests.post(SOLR_URL,
