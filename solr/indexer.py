@@ -1,15 +1,18 @@
 import sys
 import gzip
 import requests
+import json
 
-SOLR_URL = 'http://localhost:8983/solr/speedtest/update'
+SOLR_URL = 'http://localhost:8983/solr/update'
 
 
 def main():
     with gzip.open(sys.argv[1]) as f:
         body = []
         for count, line in enumerate(f):
-            body.append(line)
+            doc = json.loads(line)
+            doc['id'] = sys.argv[2] + doc['id']
+            body.append(json.dumps(doc))
             if count % 100 == 0:
                 resp = requests.post(SOLR_URL,
                     headers={'Content-Type': 'application/json'},
