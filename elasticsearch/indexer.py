@@ -13,7 +13,9 @@ def main():
         for line in f:
             doc = json.loads(line)
             batch.append(json.dumps({"index": 
-                {"_index": "speedtest", "_type": "document", "_id": doc["id"]}}))
+                {"_index": "speedtest", 
+                 "_type": "document", 
+                 "_id": "{0}{1}".format(sys.argv[2], doc["id"])}}))
             batch.append(line.strip())
 
             count += 1
