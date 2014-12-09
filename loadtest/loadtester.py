@@ -6,10 +6,6 @@ import time
 import sys
 import json
 
-# configure your search URLs here
-SOLR_SEARCH = 'http://localhost:8983/solr/query'
-ES_SEARCH = 'http://localhost:9200/speedtest/_search'
-
 
 def main(search):
     words = set()
@@ -50,7 +46,7 @@ def search_solr(q, lics):
         params['facet'] = 'true'
         params['facet.field'] = ['source', 'level']
         
-    resp = requests.get(SOLR_SEARCH, params=params)
+    resp = requests.get(args.solr, params=params)
     return resp.json()['response']['numFound']
 
 def search_es(q, lics):
@@ -84,22 +80,31 @@ def search_es(q, lics):
             "sources": {"terms": {"field": "source"}}
         }
 
-    resp = requests.post(ES_SEARCH, json.dumps(body))
+    resp = requests.post(args.es, json.dumps(body))
     return resp.json()['hits']['total']
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Simple load tester')
-    parser.add_argument('--es', default=False, action='store_true',
-        help='use Elasticsearch (defaults to Solr)')
+    parser.add_argument('--es', type=str, default=None, help="Elasticsearch search URL")
+    parser.add_argument('--solr', type=str, default=None, help="Solr search URL")
     parser.add_argument('-i', type=str, required=True, help='input file for words')
     parser.add_argument('-o', type=str, required=True, help='output file')
-    parser.add_argument('--ns', type=int, required=True, help='number of searches')
-    parser.add_argument('--nt', type=int, default=1, help='number of terms')
+    parser.add_argument('--ns', type=int, default=1, help='number of searches (default is 1)')
+    parser.add_argument('--nt', type=int, default=1, help='number of terms (default is 1)')
     parser.add_argument('--nf', type=int, default=0, help='number of filters (default is 0)')
     parser.add_argument('--fac', default=False, action='store_true',
         help='use facets')
 
     args = parser.parse_args()
+
+    if args.es is None and args.solr is None:
+        print "Either --es or --solr is required"
+        sys.exit(1)
+
+    if args.es and args.solr:
+        print "Cannot have both --es and --solr"
+        sys.exit(1)
+            
     main(search_es if args.es else search_solr)
         

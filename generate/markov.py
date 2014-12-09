@@ -1,8 +1,10 @@
 """Markov random text generator.
 
-by Shabda Raaj
+Adapted from code by Shabda Raaj (Twitter: @shabda) of agiliq.com, and used by kind permission.
 
 http://agiliq.com/blog/2009/06/generating-pseudo-random-text-with-markov-chains-u/
+
+Copyright (c) 2009 Shabda Raaj, all rights reserved.
 
 """
 

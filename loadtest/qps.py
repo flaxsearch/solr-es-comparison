@@ -6,10 +6,6 @@ import time
 import sys
 import json
 
-SOLR_SEARCH = 'http://84.40.61.82:8983/solr/query'
-ES_SEARCH = 'http://84.40.61.82:9200/speedtest/_search'
-
-
 
 def main(inpath, search):
     words = set()
@@ -21,7 +17,7 @@ def main(inpath, search):
     licenses = []
     for i in xrange(100):
         lics = []
-        for j in xrange(1):
+        for j in xrange(3):
             lics.append((random.randint(1, 20), random.randint(1, 5)))
         licenses.append(lics)
     
@@ -41,9 +37,7 @@ def search_solr(q, lics):
     fq = ' OR '.join(fq)
     q = ' OR '.join(q)
 
-    resp = requests.get(SOLR_SEARCH, params={'q': q, 'fq': fq, 'rows': '10'})
-
-    assert resp.status_code == 200, resp.text
+    resp = requests.get(args.solr, params={'q': q, 'fq': fq, 'rows': '10'})
     return resp.json()['response']['numFound']
 
 def search_es(q, lics):
@@ -68,23 +62,28 @@ def search_es(q, lics):
                 }
             }
         },
-#        "aggs": {
-#            "levels": {"terms": {"field": "level"}},
-#            "sources": {"terms": {"field": "source"}}
-#        },
         "size": 10,
     }
 
-    resp = requests.post(ES_SEARCH, json.dumps(body))
+    resp = requests.post(args.es, json.dumps(body))
     return resp.json()['hits']['total']
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Simple load tester')
-    parser.add_argument('--es', default=False, action='store_true',
-        help='use Elasticsearch (defaults to Solr)')
+    parser.add_argument('--es', type=str, default=None, help="Elasticsearch search URL")
+    parser.add_argument('--solr', type=str, default=None, help="Solr search URL")
     parser.add_argument('-i', type=str, required=True, help='input file for words')
 
     args = parser.parse_args()
+
+    if args.es is None and args.solr is None:
+        print "Either --es or --solr is required"
+        sys.exit(1)
+
+    if args.es and args.solr:
+        print "Cannot have both --es and --solr"
+        sys.exit(1)
+
     main(args.i, search_es if args.es else search_solr)
         
