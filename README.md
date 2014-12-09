@@ -45,7 +45,7 @@ Before indexing, you need to configure the index, e.g. with curl:
     $ cd elasticsearch
     $ curl -XPUT http://localhost:9200/speedtest -d@index-config.json
 
-(replacing localhost:9200 with the location your Elasticsearch instance). Then edit the
+(replacing localhost:9200 with the location of your Elasticsearch instance). Then edit the
 `indexer.py` script and set `ES_URL` to point to the speedtest index. 
 
     $ time python indexer.py ../data/docs.gz A
