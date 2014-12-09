@@ -24,15 +24,13 @@ def main(search):
     words = list(words)
     with open(args.o, 'w') as f:
         for i in xrange(args.ns):
-            t0 = time.time()
             query = []
             for j in xrange(args.nt):
                 query.append(random.choice(words))
-            numfound = search(query, random.choice(licenses))
-            t1 = time.time()
-            print >>f, numfound, t1 - t0
+            numfound, t = search(query, random.choice(licenses))
+            print >>f, numfound, t
             if i % 1000 == 0:
-                print i, numfound, t1 - t0
+                print i, numfound, t
 
 def search_solr(q, lics):
     params = {'q': ' OR '.join(q), 'rows': '10'}
@@ -46,8 +44,10 @@ def search_solr(q, lics):
         params['facet'] = 'true'
         params['facet.field'] = ['source', 'level']
         
+    t0 = time.time()
     resp = requests.get(args.solr, params=params)
-    return resp.json()['response']['numFound']
+    t1 = time.time()
+    return (resp.json()['response']['numFound'], t1 - t0)
 
 def search_es(q, lics):
     fq = []    
@@ -80,8 +80,15 @@ def search_es(q, lics):
             "sources": {"terms": {"field": "source"}}
         }
 
-    resp = requests.post(args.es, json.dumps(body))
-    return resp.json()['hits']['total']
+    # don't want json conversion in time
+    jsonbody = json.dumps(body)
+
+    t0 = time.time()
+    resp = requests.post(args.es, jsonbody)
+    t1 = time.time()
+
+    jsonresp = resp.json()
+    return (jsonresp['hits']['total'], t1 - t0)
 
 
 if __name__ == '__main__':
