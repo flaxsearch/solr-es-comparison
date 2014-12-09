@@ -3,7 +3,7 @@ import gzip
 import requests
 import json
 
-SOLR_URL = 'http://localhost:8983/solr/update'
+SOLR_URL = 'http://84.40.61.82:8983/solr/update'
 
 
 def main():
@@ -18,10 +18,12 @@ def main():
                     headers={'Content-Type': 'application/json'},
                     data='[{0}]'.format(','.join(body)))
                 assert resp.status_code == 200, resp.text
-                print count
                 body = []
 
-            if count % 10000 == 0:
+            if count % 1000 == 0:
+                print count
+
+            if count % 100000 == 0:
                 resp = requests.get(SOLR_URL + '?commit=true')
                 assert resp.status_code == 200, resp.text
 

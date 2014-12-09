@@ -3,7 +3,8 @@ import gzip
 import json
 import requests
 
-ES_URL = 'http://localhost:9200/speedtest/_bulk'
+ES_URL = 'http://84.40.61.82:9200/speedtest/_bulk'
+#ES_URL = 'http://84.40.61.85:9200/speedtest/_bulk'
 
 
 def main():
@@ -21,7 +22,7 @@ def main():
                      "_id": "{0}{1}".format(sys.argv[2], doc["id"])}}))
                 batch.append(line.strip())
 
-                if count % 100 == 0:
+                if count % 1000 == 0:
                     print count
                     resp = requests.post(ES_URL,
                         headers={'Content-Type': 'application/octet-stream'},
