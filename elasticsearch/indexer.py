@@ -3,8 +3,7 @@ import gzip
 import json
 import requests
 
-ES_URL = 'http://84.40.61.82:9200/speedtest/_bulk'
-#ES_URL = 'http://84.40.61.85:9200/speedtest/_bulk'
+ES_URL = 'http://localhost:9200/speedtest/_bulk'
 
 
 def main():
