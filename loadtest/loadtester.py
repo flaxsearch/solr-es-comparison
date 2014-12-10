@@ -52,23 +52,22 @@ def search_solr(q, lics):
 def search_es(q, lics):
     fq = []    
     for lic in lics:
-        fq.append(
-            {"and": [
-                {"term": {"source": lic[0]}},
-                {"numeric_range": {"level": {"gte": 1, "lte": lic[1]}}}
-            ]})
+        fq.append({"bool": {"must": [
+            {"term": {"source": lic[0]}},
+            {"range": {"level": {"gte": 1, "lte": lic[1]}}}
+        ]}})
 
     body = {
         "size": 10,
         "query": {
             "filtered": {
-                "filter": {"or": fq },
-                "query": {
+                "filter": {
                     "bool": {
-                        "should": [
-                            {"match": {"text": x}} for x in q
-                        ]
+                        "should": [f for f in fq]
                     }
+                },
+                "query": {
+                    "match": {"text": ' '.join(q)}
                 }
             }
         }
