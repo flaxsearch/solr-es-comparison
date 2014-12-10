@@ -35,12 +35,12 @@ def main(search):
                 print i, numfound, t1 - t0
 
 def search_solr(q, lics):
-    params = {'q': ' OR '.join(q), 'rows': '10'}
+    params = {'q': ' '.join(q), 'rows': '10', 'defType': 'edismax'}
     if lics:
         fq = []
         for lic in lics:
-            fq.append('(source:%d AND level:[1 TO %d])' % lic)
-        params['fq'] = ' OR '.join(fq)
+            fq.append('(+source:%d +level:[1 TO %d])' % lic)
+        params['fq'] = ' '.join(fq)
 
     if args.fac:
         params['facet'] = 'true'
