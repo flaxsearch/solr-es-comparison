@@ -50,29 +50,42 @@ def search_solr(q, lics):
     return resp.json()['response']['numFound']
 
 def search_es(q, lics):
-    fq = []    
-    for lic in lics:
-        fq.append(
-            {"and": [
-                {"term": {"source": lic[0]}},
-                {"numeric_range": {"level": {"gte": 1, "lte": lic[1]}}}
-            ]})
+    if lics:
+        fq = []
+        for lic in lics:
+            fq.append(
+                {"and": [
+                    {"term": {"source": lic[0]}},
+                    {"numeric_range": {"level": {"gte": 1, "lte": lic[1]}}}
+                ]})
 
-    body = {
-        "size": 10,
-        "query": {
-            "filtered": {
-                "filter": {"or": fq },
-                "query": {
-                    "bool": {
-                        "should": [
-                            {"match": {"text": x}} for x in q
-                        ]
+        body = {
+            "size": 10,
+            "query": {
+                "filtered": {
+                    "filter": {"or": fq },
+                    "query": {
+                        "bool": {
+                            "should": [
+                                {"match": {"text": x}} for x in q
+                            ]
+                        }
                     }
                 }
             }
         }
-    }
+    else:
+        body = {
+            "size": 10,
+            "query": {
+                "bool": {
+                    "should": [
+                        {"match": {"text": x}} for x in q
+                    ]
+                }
+            }
+        }
+        
 
     if args.fac:
         body["aggs"] = {
