@@ -61,7 +61,7 @@
      installations. See the <uniqueKey> declaration below where <uniqueKey> is set to "id".
    -->   
    <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" /> 
-   <field name="text" type="text_general" indexed="true" stored="true" multiValued="false"/>
+   <field name="text" type="text_general" indexed="true" stored="false" multiValued="false"/>
    <field name="level" type="int" indexed="true" stored="true"/>
    <field name="source" type="int" indexed="true" stored="true"/>
 

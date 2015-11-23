@@ -35,7 +35,7 @@ def main(search):
                 print i, numfound, t1 - t0
 
 def search_solr(q, lics):
-    params = {'q': ' OR '.join(q), 'rows': '10'}
+    params = {'q': ' OR '.join(q), 'rows': '20'}
     if lics:
         fq = []
         for lic in lics:
@@ -47,6 +47,10 @@ def search_solr(q, lics):
         params['facet.field'] = ['source', 'level']
         
     resp = requests.get(args.solr, params=params)
+    if args.v:
+        print 'params:', json.dumps(params, indent=2)
+        print 'response:', json.dumps(resp.json(), indent=2)
+    
     return resp.json()['response']['numFound']
 
 def search_es(q, lics):
@@ -56,11 +60,11 @@ def search_es(q, lics):
             fq.append(
                 {"and": [
                     {"term": {"source": lic[0]}},
-                    {"numeric_range": {"level": {"gte": 1, "lte": lic[1]}}}
+                    {"range": {"level": {"gte": 1, "lte": lic[1]}}}
                 ]})
 
         body = {
-            "size": 10,
+            "size": 20,
             "query": {
                 "filtered": {
                     "filter": {"or": fq },
@@ -76,7 +80,7 @@ def search_es(q, lics):
         }
     else:
         body = {
-            "size": 10,
+            "size": 20,
             "query": {
                 "bool": {
                     "should": [
@@ -94,6 +98,10 @@ def search_es(q, lics):
         }
 
     resp = requests.post(args.es, json.dumps(body))
+    if args.v:
+        print 'request:', json.dumps(body, indent=2)
+        print 'response:', json.dumps(resp.json(), indent=2)
+
     return resp.json()['hits']['total']
 
 
@@ -103,6 +111,7 @@ if __name__ == '__main__':
     parser.add_argument('--solr', type=str, default=None, help="Solr search URL")
     parser.add_argument('-i', type=str, required=True, help='input file for words')
     parser.add_argument('-o', type=str, required=True, help='output file')
+    parser.add_argument('-v', default=False, action='store_true', help='verbose')
     parser.add_argument('--ns', type=int, default=1, help='number of searches (default is 1)')
     parser.add_argument('--nt', type=int, default=1, help='number of terms (default is 1)')
     parser.add_argument('--nf', type=int, default=0, help='number of filters (default is 0)')

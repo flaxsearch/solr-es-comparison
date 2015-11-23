@@ -3,21 +3,26 @@
     },
     "mappings": {
         "document": {
-            "_source": { "enabled": true  },
+            "_source": { "enabled": false  },
+            "_all": { "enabled": false  },
             "properties": {
                 "id": {
                     "type": "string",
-                    "index": "not_analyzed"
+                    "index": "not_analyzed",
+                    "store": true
                 },
                 "text": {
                     "type": "string",
-                    "analyzer": "standard"
+                    "analyzer": "standard",
+                    "store": false
                 },
                 "level": {
-                    "type": "integer"
+                    "type": "integer",
+                    "store": true
                 },
                 "source": {
-                    "type": "integer"
+                    "type": "integer",
+                    "store": true                    
                 }
             }
         }

@@ -3,7 +3,7 @@ import gzip
 import requests
 import json
 
-SOLR_URL = 'http://localhost:8983/solr/update'
+SOLR_URL = 'http://localhost:8983/solr/speedtest/update'
 
 
 def main():
