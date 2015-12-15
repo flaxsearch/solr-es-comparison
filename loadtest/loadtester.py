@@ -36,7 +36,7 @@ def main(search):
                 print i, numfound, t
 
 def search_solr(q, lics):
-    params = {'q': ' '.join(q), 'rows': '10', 'defType': 'edismax'}
+    params = {'q': ' '.join(q), 'rows': '20', 'defType': 'edismax'}
     if lics:
         fq = []
         for lic in lics:
@@ -99,13 +99,11 @@ if __name__ == '__main__':
     parser.add_argument('--solr', type=str, default=None, help="Solr search URL")
     parser.add_argument('-i', type=str, required=True, help='input file for words')
     parser.add_argument('-o', type=str, required=True, help='output file')
-    parser.add_argument('-v', default=False, action='store_true', help='verbose')
     parser.add_argument('--seed', type=long, default=long(time.mktime(time.gmtime())), help='seed value')
     parser.add_argument('--ns', type=int, default=1, help='number of searches (default is 1)')
     parser.add_argument('--nt', type=int, default=1, help='number of terms (default is 1)')
     parser.add_argument('--nf', type=int, default=0, help='number of filters (default is 0)')
-    parser.add_argument('--fac', default=False, action='store_true',
-        help='use facets')
+    parser.add_argument('--fac', default=False, action='store_true', help='use facets')
 
     args = parser.parse_args()
 

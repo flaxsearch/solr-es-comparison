@@ -1,3 +1,7 @@
+# Python is perhaps not ideal for this, due to the GIL. However, if we assume 
+# that the threads are mostly blocked on IO from the search engine, this should 
+# be a relatively minor factor.
+
 import argparse
 import requests
 import re
@@ -5,9 +9,13 @@ import random
 import time
 import sys
 import json
+import threading
 
 
 def main(inpath, search):
+    print 'Using seed: %s and threads: %s' % (args.seed, args.threads)
+    random.seed(args.seed)
+
     words = set()
     with open(inpath) as f:
         for line in f:
@@ -22,51 +30,75 @@ def main(inpath, search):
         licenses.append(lics)
     
     words = list(words)
-    while True:
-        t0 = time.time()
-        for i in xrange(100):
-            numfound = search(
-                [random.choice(words), random.choice(words), random.choice(words)], 
-                random.choice(licenses))
-        print 100 / (time.time() - t0), 'qps'
+    count = [0]
+
+    def run_searches(threadnum):
+        while True:
+            search([random.choice(words) for n in xrange(3)], random.choice(licenses))
+            count[0] += 1
+    
+    def qps_thread():
+        while True:
+            time.sleep(30.0)
+            print count[0] / 30.0, 'qps'
+            count[0] = 0
+                
+    for num in xrange(args.threads):
+        print 'starting search thread', num
+        thread = threading.Thread(target=run_searches, args=(num,))
+        thread.start()
+    
+    threading.Thread(target=qps_thread).start()
 
 def search_solr(q, lics):
-    fq = []
-    for lic in lics:
-        fq.append('(source:%d AND level:[1 TO %d])' % lic)
-    fq = ' OR '.join(fq)
-    q = ' OR '.join(q)
+    params = {'q': ' '.join(q), 'rows': '20', 'defType': 'edismax'}
+    if lics:
+        fq = []
+        for lic in lics:
+            fq.append('(+source:%d +level:[1 TO %d])' % lic)
+        params['fq'] = ' '.join(fq)
 
-    resp = requests.get(args.solr, params={'q': q, 'fq': fq, 'rows': '10'})
-    return resp.json()['response']['numFound']
+    if args.fac:
+        params['facet'] = 'true'
+        params['facet.field'] = ['source', 'level']
+
+    resp = requests.get(args.solr, params=params)
+    if args.v:
+        print 'Solr - total found:', resp.json()['response']['numFound']
 
 def search_es(q, lics):
     fq = []    
     for lic in lics:
-        fq.append(
-            {"and": [
-                {"term": {"source": lic[0]}},
-                {"numeric_range": {"level": {"gte": 1, "lte": lic[1]}}}
-            ]})
+        fq.append({"bool": {"must": [
+            {"term": {"source": lic[0]}},
+            {"range": {"level": {"gte": 1, "lte": lic[1]}}}
+        ]}})
 
     body = {
+        "size": 20,
         "query": {
             "filtered": {
-                "filter": {"or": fq },
-                "query": {
+                "filter": {
                     "bool": {
-                        "should": [
-                            {"match": {"text": x}} for x in q
-                        ]
+                        "should": [f for f in fq]
                     }
+                },
+                "query": {
+                    "match": {"text": ' '.join(q)}
                 }
             }
-        },
-        "size": 10,
+        }
     }
 
+    if args.fac:
+        body["aggs"] = {
+            "levels": {"terms": {"field": "level"}},
+            "sources": {"terms": {"field": "source"}}
+        }
+
     resp = requests.post(args.es, json.dumps(body))
-    return resp.json()['hits']['total']
+    if args.v:
+        print 'ES - total found:', resp.json()['hits']['total']
 
 
 if __name__ == '__main__':
@@ -74,6 +106,10 @@ if __name__ == '__main__':
     parser.add_argument('--es', type=str, default=None, help="Elasticsearch search URL")
     parser.add_argument('--solr', type=str, default=None, help="Solr search URL")
     parser.add_argument('-i', type=str, required=True, help='input file for words')
+    parser.add_argument('--seed', type=long, default=long(time.mktime(time.gmtime())), help='seed value')
+    parser.add_argument('--threads', type=long, default=1, help='threads')
+    parser.add_argument('--fac', default=False, action='store_true', help='use facets')
+    parser.add_argument('-v', default=False, action='store_true', help='verbose')
 
     args = parser.parse_args()
 
