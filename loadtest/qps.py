@@ -96,6 +96,8 @@ def search_es(q, lics):
             "sources": {"terms": {"field": "source"}}
         }
 
+    # JSON encoding included in timings, but significance doubtful
+    # (can do over 46k encodes/s with 16 threads on m4.xlarge)
     resp = requests.post(args.es, json.dumps(body))
     if args.v:
         print 'ES - total found:', resp.json()['hits']['total']
